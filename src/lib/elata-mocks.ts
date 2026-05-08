@@ -20,10 +20,10 @@ export class ElataCameraSDK {
     this.interval = window.setInterval(() => {
       if (this.active) {
         onData({
-          stress: Math.max(10, Math.min(100, 30 + (Math.random() * 20 - 10)))
+          stress: Math.round(40 + Math.random() * 50)
         });
       }
-    }, 1000);
+    }, 3000);
   }
 
   stopStream() {
@@ -37,7 +37,6 @@ export class ElataBleSDK {
   private interval: number | null = null;
 
   async requestConnection(): Promise<void> {
-    // Requires user gesture
     console.log("Requesting BLE connection... (User gesture required)");
     return new Promise(resolve => setTimeout(resolve, 800));
   }
@@ -47,11 +46,11 @@ export class ElataBleSDK {
     this.interval = window.setInterval(() => {
       if (this.active) {
         onData({
-          focus: Math.max(10, Math.min(100, 65 + (Math.random() * 20 - 10))),
-          calm: Math.max(10, Math.min(100, 70 + (Math.random() * 20 - 10)))
+          focus: Math.round(40 + Math.random() * 50),
+          calm: Math.round(40 + Math.random() * 50)
         });
       }
-    }, 1000);
+    }, 3000);
   }
 
   stopStream() {

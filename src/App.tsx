@@ -1,41 +1,52 @@
 import { useState } from 'react';
-import { useElataBiometrics } from './hooks/useElataBiometrics';
+import { useBioSensor } from './contexts/BioSensorContext';
 import { BiometricRing } from './components/BiometricRings';
 import { commitJournalEntry } from './lib/crypto';
 import { claimZorpRewards } from './lib/zorp';
 import { Shield, Brain, Activity, Lock, Coins, Upload } from 'lucide-react';
 
 function App() {
-  const { current, average, isCameraActive, isBleActive, startCamera, startBle } = useElataBiometrics();
+  const { current, average, isCameraActive, isBleActive, isScanningCamera, isScanningBle, startCamera, startBle } = useBioSensor();
   const [journalText, setJournalText] = useState('');
   const [monetize, setMonetize] = useState(false);
-  const [isCommitting, setIsCommitting] = useState(false);
+  const [commitState, setCommitState] = useState<'idle' | 'encrypting' | 'submitting'>('idle');
+  const [toastMsg, setToastMsg] = useState('');
 
   const handleCommit = async () => {
     if (!journalText) return;
-    setIsCommitting(true);
+    setCommitState('encrypting');
     
     try {
       const txHash = await commitJournalEntry(journalText, average);
       
+      setCommitState('submitting');
       if (monetize) {
         // Mock validity score based on how much data we collected
         const validityScore = (average.focus + average.calm) / 2;
         await claimZorpRewards(validityScore);
       }
       
-      alert(`Journal Entry Committed!\nTx Hash: ${txHash}`);
+      setToastMsg('Entry committed to Antigravity. +25 Elata Points earned.');
       setJournalText('');
+      setTimeout(() => setToastMsg(''), 5000);
     } catch (e) {
       console.error(e);
-      alert('Error committing entry');
+      setToastMsg('Error committing entry');
+      setTimeout(() => setToastMsg(''), 5000);
     } finally {
-      setIsCommitting(false);
+      setCommitState('idle');
     }
   };
 
   return (
-    <div className="min-h-screen bg-background text-textMain p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-background text-textMain p-4 md:p-8 font-sans relative">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-4 right-4 z-50 glass-panel border-primary/50 text-white animate-fade-in px-6 py-3 shadow-[0_0_15px_rgba(0,240,255,0.2)]">
+          {toastMsg}
+        </div>
+      )}
+
       {/* Header */}
       <header className="glass-panel flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-t-2 border-t-primary/50">
         <div>
@@ -48,26 +59,26 @@ function App() {
         <div className="flex gap-4">
           <button 
             onClick={startBle}
-            disabled={isBleActive}
+            disabled={isBleActive || isScanningBle}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-mono border transition-all ${
               isBleActive ? 'bg-primary/10 border-primary text-primary neon-text-primary neon-border-primary' : 'border-border text-gray-400 hover:border-gray-500'
             }`}
           >
             <Brain size={16} />
-            Neural Link
+            {isScanningBle ? 'Scanning...' : 'Neural Link'}
             {isBleActive && <span className="ml-2 text-xs">95% signal</span>}
           </button>
           
           <button 
             onClick={startCamera}
-            disabled={isCameraActive}
+            disabled={isCameraActive || isScanningCamera}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-mono border transition-all ${
               isCameraActive ? 'bg-secondary/10 border-secondary text-secondary' : 'border-border text-gray-400 hover:border-gray-500'
             }`}
             style={isCameraActive ? { textShadow: '0 0 10px rgba(0, 102, 255, 0.5)', boxShadow: '0 0 15px rgba(0, 102, 255, 0.3)'} : {}}
           >
             <Activity size={16} />
-            Optical Heart Rate
+            {isScanningCamera ? 'Scanning...' : 'Optical Heart Rate'}
             {isCameraActive && <span className="ml-2 text-xs">88% signal</span>}
           </button>
         </div>
@@ -98,14 +109,16 @@ function App() {
 
           <button
             onClick={handleCommit}
-            disabled={isCommitting || !journalText}
+            disabled={commitState !== 'idle' || !journalText}
             className={`glass-panel py-4 flex items-center justify-between group transition-all ${
-              !journalText ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50 cursor-pointer'
+              !journalText || commitState !== 'idle' ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50 cursor-pointer'
             }`}
           >
             <div className="flex items-center gap-2 font-mono text-gray-300 group-hover:text-primary transition-colors">
               <Upload size={18} />
-              {isCommitting ? 'Committing...' : 'Commit to Ledger'}
+              {commitState === 'encrypting' ? 'Encrypting Biometric Metadata...' : 
+               commitState === 'submitting' ? 'Submitting to ZORP Research Manager...' : 
+               'Commit to Ledger'}
             </div>
             <div className="text-gray-500 group-hover:text-primary transition-colors">
               &gt;
