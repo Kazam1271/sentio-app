@@ -47,6 +47,13 @@ function App() {
         </div>
       )}
 
+      {/* Main Title */}
+      <div className="mb-8 flex items-center gap-4">
+        <h1 className="text-5xl md:text-7xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary neon-text-primary uppercase">
+          SENTIO
+        </h1>
+      </div>
+
       {/* Header */}
       <header className="glass-panel flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-t-2 border-t-primary/50">
         <div>
