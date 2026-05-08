@@ -17,7 +17,7 @@ function App() {
     setCommitState('encrypting');
     
     try {
-      const txHash = await commitJournalEntry(journalText, average);
+      await commitJournalEntry(journalText, average);
       
       setCommitState('submitting');
       if (monetize) {
