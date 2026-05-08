@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-textMain font-sans antialiased m-0 p-0;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-surface/50 backdrop-blur-md border border-border rounded-xl p-6 shadow-lg;
+  }
+  
+  .neon-text-primary {
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  }
+  
+  .neon-border-primary {
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+  }
+}
